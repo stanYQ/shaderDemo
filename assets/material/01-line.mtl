@@ -1,0 +1,35 @@
+{
+  "__type__": "cc.Material",
+  "_name": "01-line",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "d51b3c38-d413-48e5-a820-22fc24f4d31e"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true,
+        "INPUT_IS_GAMMA": false,
+        "STRAIGHT_LINE": true,
+        "CURVE_LINE": false,
+        "STEP_LINE": false,
+        "SMOOTHSTEP_LINE": true,
+        "SIN_LINE": false,
+        "COS_LINE": false,
+        "TAN_LINE": false,
+        "USE_ALPHA_TEST": false
+      },
+      "props": {
+        "mainColor": {
+          "__type__": "cc.Color",
+          "r": 37,
+          "g": 213,
+          "b": 195,
+          "a": 255
+        }
+      }
+    }
+  }
+}

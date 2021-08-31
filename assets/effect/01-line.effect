@@ -1,0 +1,150 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        mainColor: { value: [1,1,1,1], editor: {type: color}}
+}%
+//定义主颜色 mainColor
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  in vec2 a_uv0;
+  //输出位置信息
+  out vec2 v_uv0;
+  out vec4 v_color;
+  
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    v_uv0 = a_uv0 ;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+
+  in vec4 v_color;
+  //接收像素坐标信息
+  in vec2 v_uv0;
+
+  #if USE_TEXTURE
+  uniform sampler2D texture;
+  #endif
+
+  //实例化mainColor
+  uniform OutLine{
+    vec4 mainColor;
+  };
+
+  //定义划线的方法
+  float plot1(vec2 st){
+    //smoothstep 详情见差值函数相关 
+    //当st.y-st.x 的绝对值 <=0.01 && >=0.0 return 1.0;
+      return smoothstep(0.01, 0.00, abs(st.y - st.x));
+  }
+
+  float plot2(vec2 st, float pct){
+    return smoothstep(pct-0.02,pct,st.y) - smoothstep(pct,pct+0.02,st.y);
+  }
+
+  vec3 drawLine(vec3 color,float pct){
+      return (1.0 -pct) *color + pct *vec3(mainColor.r,mainColor.g,mainColor.b);
+  }
+
+  void main () {
+    //v_uv0 是以右上角为原点 Y轴向下 X轴向右
+    //st 是坐标转换后的坐标 以右下角作为原点 
+    vec2 st = vec2(v_uv0.x,-v_uv0.y+1.0);
+    vec3 color = vec3(1);
+    vec4 o = vec4(color,1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, o);
+    #endif
+
+    //画直线
+    #if STRAIGHT_LINE
+    float pct1 = plot1(st);
+    color = drawLine(color,pct1);
+    #endif
+
+    #if CURVE_LINE
+    //指数函数
+    float y1 = pow(st.x,5.0);
+    float pct2 = plot2(st,y1);
+    color = drawLine(color,pct2);
+    #endif
+
+    // step 函数画线
+    #if STEP_LINE
+    float y2 =step(0.5,st.x);
+    float pct3 = plot2(st,y2);
+    color = drawLine(color,pct3);
+    #endif 
+
+    //smoothstep函数画线
+    #if SMOOTHSTEP_LINE
+    float y3 = smoothstep(0.1,0.9,st.x);
+    float pct4 = plot2(st,y3);
+    color = drawLine(color,pct4);
+    #endif
+
+    //sin 函数曲线
+    #if SIN_LINE
+    float y4 = sin((st.x+0.125)*10.)/5. +0.5;
+    float pct5 = plot2(st,y4);
+    color = drawLine(color,pct5);
+    #endif
+
+    //cos 函数曲线
+    #if COS_LINE
+    float y5 = cos((st.x+0.125)*10.)/5. +0.5;
+    float pct6 = plot2(st,y5);
+    color = drawLine(color,pct6);
+    #endif
+
+    // tan 函数曲线
+    #if TAN_LINE
+    float y6 = tan((st.x+0.125)*5.)/5. +0.5;
+    float pct7 = plot2(st,y6);
+    color = drawLine(color,pct7);
+    #endif
+
+    o *= v_color;
+    o *= vec4(color,1.0);
+    ALPHA_TEST(o);
+    gl_FragColor = o;
+  }
+}%
