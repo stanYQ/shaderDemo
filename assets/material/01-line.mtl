@@ -16,7 +16,7 @@
         "CURVE_LINE": false,
         "STEP_LINE": false,
         "SMOOTHSTEP_LINE": true,
-        "SIN_LINE": false,
+        "SIN_LINE": true,
         "COS_LINE": false,
         "TAN_LINE": false,
         "USE_ALPHA_TEST": false
